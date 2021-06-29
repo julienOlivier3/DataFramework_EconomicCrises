@@ -1,0 +1,8 @@
+# Folders
+.ipynb_checkpoints/
+.git/
+.vscode/
+01_Old/
+
+# Files
+visualization_flowchart.R
