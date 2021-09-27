@@ -1,4 +1,4 @@
-# DataFramework_EconomicCrises
+# Integrated Data Framework for Policy Makers in Times of Economic Crises
 Data analysis of corporate website data, business survey data and corporate credit ratings supporting the findings in the paper **"An Integrated Data Framework for Policy Guidance in Times of Dynamic Economic Shocks"**, Dörr et. al ([2021](https://ftp.zew.de/pub/zew-docs/dp/dp21062.pdf)).
 
 **Abstract**<br/>
