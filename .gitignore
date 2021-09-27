@@ -5,4 +5,12 @@
 01_Old/
 
 # Files
-visualization_flowchart.R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.ipynb_checkpoints
+01_Literature
+02_Data
+03_Writing
+05_Submission
