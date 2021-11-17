@@ -1,23 +1,28 @@
 # Packages ----------------------------------------------------------------
 
-library(tidyverse)     # the universe
-library(haven)         # read stata files
-library(tikzDevice)    # R plots to tkzpictures in Latex
-library(fmsb)          # radar plot
-library(gridExtra)     # place plots side by side
-library(lubridate)     # format dates
-library(tsibble)       # wokring with time series or panel data
-library(sjlabelled)    # conveniently switching to labels when working with Stata data
-library(GGally)        # enables parallel coordinates chart
-library(viridis)       # nice colors for plotting
-library(hrbrthemes)
-library(sandwich)      # calculate robust standard errors
-library(lmtest)        # t-tests with robust standard errors
-library(ggridges)      # several densities in one plot
-library(stargazer)     # Latex tables
-library(margins)       # calculate marginal effects in probit/logit regression
-library(broom)         # tidy display of coeftest results
-library(xlsx)          # write excel files
+pacman::p_load(
+  tidyverse,   # the universe of tidy data processing in R
+  haven,       # read stata files
+  tikzDevice,  # R plots to tikzpictures in Latex
+  fmsb,        # radar plot
+  gridExtra,   # place plots side by side
+  lubridate,   # format dates
+  tsibble,     # working with time series or panel data
+  sjlabelled,  # conveniently switching to labels when working with Stata data
+  GGally,      # enables parallel coordinates chart
+  viridis,     # nice colors for plotting
+  hrbrthemes, 
+  sandwich,    # calculate robust standard errors
+  lmtest,      # t-tests with robust standard errors
+  ggridges,    # several densities in one plot
+  stargazer,   # Latex tables
+  margins,     # calculate marginal effects in probit/logit regression
+  broom,       # tidy display of coeftest results
+  xlsx,        # write excel files
+  here         # for relative paths
+)
+
+
 
 
 # Themes ------------------------------------------------------------------
