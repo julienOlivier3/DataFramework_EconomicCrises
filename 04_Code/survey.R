@@ -1,5 +1,7 @@
-setwd("Q:\\Meine Bibliotheken\\Research\\01_Promotion\\05_Ideas\\07_COVID_Tracking")
-source(file.path(getwd(), '04_Code', 'setup.R'))
+# Setup -------------------------------------------------------------------
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(here)
+source(file.path(here(), '04_Code', 'setup.R'))
 
 
 # -------------------------------------------------------------------------
