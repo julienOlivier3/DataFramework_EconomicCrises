@@ -2,8 +2,6 @@
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here)
 source(file.path(here(), '04_Code', 'setup.R'))
-setwd("Q:\\Meine Bibliotheken\\Research\\01_Promotion\\05_Ideas\\07_COVID_Tracking")
-source(file.path(getwd(), '04_Code', 'setup.R'))
 
 
 # -------------------------------------------------------------------------
@@ -13,7 +11,7 @@ source(file.path(getwd(), '04_Code', 'setup.R'))
 
 
 # Read Impact Data
-df <- read_delim("Q:\\Meine Bibliotheken\\Research\\01_Promotion\\05_Ideas\\07_COVID_Tracking\\02_Data\\01_Webdata\\bert_per_firm.csv", delim='\t')
+df <- read_delim(here("02_Data\\01_Webdata\\bert_per_firm.csv"), delim='\t')
 
 # Reduce to relevant variables only
 df <- df %>% 

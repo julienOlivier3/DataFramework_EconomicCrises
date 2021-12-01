@@ -126,6 +126,29 @@ wz2_converter <- function(wz5){
   return(res)
 }
 
+
+# Function to convert from wz5 to any wz digit
+wz_converter <- function(wz5, digits=2){  
+  if(is.na(wz5)){
+    res <- NA
+  }
+  
+  else{
+    if(nchar(wz5)==4){
+      res <- as.integer(substr(as.character(wz5), 1, digits-1))
+    }
+    
+    if(nchar(wz5)==5){
+      res <- as.integer(substr(as.character(wz5), 1, digits))
+    }
+    
+  }
+  
+  
+  
+  return(res)
+}
+
 # Mappings ----------------------------------------------------------------
 
 

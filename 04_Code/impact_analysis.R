@@ -35,7 +35,7 @@ firmdata <- read_delim(file = file.path(getwd(), '02_Data', '04_Firm_Characteris
 ## Webdata ================================================================
 
 ### Sample ################################################################
-df_web_sample <- read_dta("K:\\!Projekte\\BMWI-2020-Corona-KantarMUPWEB_133244\\Daten\\Web\\corona_on_web.dta")
+df_web_sample <- read_dta(here("02_Data\\01_Webdata\\corona_on_web.dta"))
 df_web_sample <- df_web_sample %>% mutate(crefo = as.character(crefo))
 
 df_web_sample <- df_web_sample %>% 
@@ -102,6 +102,7 @@ df_web <- df_web %>%
 df_web_binary <- df_web %>% 
   mutate_if(is.double, function(x) ifelse(x > 0, 1, 0))
 
+
 # Webdata by sector + add rows with max, min and avg values
 plot_radar_web <- df_web_binary %>% 
   group_by(wz_fct) %>% 
@@ -111,6 +112,7 @@ plot_radar_web <- df_web_binary %>%
             problem = mean(problem),
             unclear = mean(unclear)) %>% 
   ungroup() 
+
 
 plot_radar_web <- plot_radar_web %>% 
   add_row(wz_fct = "Avg", adaption = mean(.$adaption), information = mean(.$information), no_problem = mean(.$no_problem), problem = mean(.$problem), unclear = mean(.$unclear), .before = 1) %>% 
@@ -144,7 +146,15 @@ for (i in 4:nrow(plot_radar_web)) {
 
 
 
+# Spider plot values for appendix
+df_app <- plot_radar_web %>% 
+  add_row(wz_fct = "Avg_unweighted", adaption = mean(.$adaption), information = mean(.$information), no_problem = mean(.$no_problem), problem = mean(.$problem), unclear = mean(.$unclear)) %>% 
+  add_row(wz_fct = "Avg_weighted", adaption = mean(df_web_binary$adaption), information = mean(df_web_binary$information), no_problem = mean(df_web_binary$no_problem), problem = mean(df_web_binary$problem), unclear = mean(df_web_binary$unclear)) %>% 
+  mutate_if(.predicate = is.numeric, .funs = function(x) round(x,2)) %>% 
+  select(wz_fct, problem, no_problem, adaption, information, unclear)
 
+
+stargazer(df_app, digits = 2, summary = FALSE, decimal.mark = ",", rownames = FALSE, digit.separate = 4, digit.separator = ",")
 
 
 
@@ -185,6 +195,58 @@ df_desc <- df_desc %>%
   
   
 stargazer(df_desc, digits = 2, summary = FALSE, decimal.mark = ",", rownames = FALSE, digit.separate = 4, digit.separator = ",")
+
+### Granularity: Webdata ##################################################
+# Binarize categories
+df_web_binary <- df_web %>% 
+  mutate_if(is.double, function(x) ifelse(x > 0, 1, 0))
+
+df_web_binary <- df_web_binary %>%
+  left_join(firmdata) 
+
+df_web_binary <- df_web_binary %>% mutate(wz2 = map_int(wzdig5, wz2_converter)) %>% 
+  mutate(wz_fct2 = case_when(
+    wz2 %in% c(58:63, 68, 69:82) ~ "Business-related services",
+    wz2 %in% c(5:9, 12:19, 23:25, 27, 31:33, 35:39, 41:43) ~ "Manufacturing",
+    wz2 %in% c(45:47) ~ "Wholesale & retail trade",
+    wz2 %in% c(86:88, 94:96) ~ "Health & social services",
+    wz2 %in% c(64:66) ~ "Insurance & banking",
+    wz2 %in% c(55, 56) ~ "Accommodation & catering",
+    wz2 %in% c(49:53) ~ "Logistics & transport",
+    wz2 %in% c(90:93) ~ "Creative industry & entertainment ",
+    wz2 %in% c(28:30) ~ "Mechanical engineering",
+    wz2 %in% c(10, 11) ~ "Food production",
+    wz2 %in% c(20:22) ~ "Chemicals & pharmaceuticals",
+    wz2 %in% c(26) ~ "Manufacturing of data processing equipment",
+  )) %>% 
+  mutate(wz_fct2 = ifelse(is.na(wz_fct2), "Others", wz_fct2))
+
+df_web_binary <- df_web_binary %>% 
+  mutate(wz3 = map_int(wzdig5, function(x) wz_converter(x, digits = 3)))
+
+df_web_binary %>% 
+  group_by(wz3) %>% 
+  summarise(adaption = mean(adaption),
+            information = mean(information),
+            no_problem = mean(no_problem),
+            problem = mean(problem),
+            unclear = mean(unclear),
+            wz_fct2 = first(wz_fct2), 
+            N = n()) %>% 
+  arrange(desc(problem)) %>% 
+  filter(wz_fct2=="Logistics & transport")
+  
+# Great differentiation in logistics and transport: passenger rail transport vs postal services
+# Keep on going here:
+
+
+
+
+
+
+
+
+
 
 ## Survey =================================================================
 
@@ -465,7 +527,7 @@ df_surv <- read_delim(file = file.path(getwd(), '02_Data', '02_Survey', 'df_surv
 df_rate <- read_delim(file = file.path(getwd(), '02_Data', '03_Rating', 'df_rate.txt'), delim = '\t', 
                       col_types = cols(crefo = col_character()))
 # Add pre-crisis updates
-load("Q:/Meine Bibliotheken/Research/01_Promotion/05_Ideas/07_COVID_Tracking/02_Data/03_Rating/df_panel_2018_2021_full.RData")
+load(here("02_Data/03_Rating/df_panel_2018_2021_full.RData"))
 df_rate_all
 
 # Firm characteristics
@@ -648,7 +710,7 @@ df_web_binary <- df_web %>%
   mutate_if(is.double, function(x) ifelse(x > 0, 1, 0))
 
 # Add pre-crisis updates
-load("Q:/Meine Bibliotheken/Research/01_Promotion/05_Ideas/07_COVID_Tracking/02_Data/03_Rating/df_panel_2018_2021_full.RData")
+load(here("02_Data/03_Rating/df_panel_2018_2021_full.RData"))
 date_threshold <- ymd('20200601')
 
 # Calculate boni prior to update
@@ -678,6 +740,8 @@ formula1 <- as.formula("ch_bonitaet ~ problem + no_problem + adaption + informat
 model_ols <- lm(formula = formula1, data = df_model)
 coeftest(model_ols, vcov = vcovHC(model_ols, type = "HC1"))
 nobs(model_ols)
+
+
 
 # Regression (2)
 formula2 <- as.formula("ch_bonitaet ~ problem + no_problem + adaption + information + unclear + p_bonitaet")
