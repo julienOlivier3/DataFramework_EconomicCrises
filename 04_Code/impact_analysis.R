@@ -160,12 +160,19 @@ stargazer(df_app, digits = 2, summary = FALSE, decimal.mark = ",", rownames = FA
 
 
 ### Descriptives: Webdata #################################################
-df_web <- df_web %>%
-  left_join(firmdata[c('crefo', 'wz_fct')]) 
-
 # Binarize categories
 df_web_binary <- df_web %>% 
   mutate_if(is.double, function(x) ifelse(x > 0, 1, 0))
+
+# Add firm characteristics
+df_web_binary <- df_web_binary %>%
+  left_join(firmdata) 
+
+# Save file for geographical analysis
+df_web_binary %>% 
+  select(crefo, adaption, information, no_problem, problem, unclear, kreis_l) %>% 
+  write_delim(here("02_Data//01_Webdata//df_web_agg_geo.csv"), delim="\t")
+
 
 df_desc <- tibble(`Problem`=summary(df_web_binary$problem)) %>% mutate_all(as.double) %>% add_row(`Problem` = sum(df_web_binary$problem)) %>% 
   add_column(tibble(`No problem`=summary(df_web_binary$no_problem)) %>% mutate_all(as.double) %>% add_row(`No problem` = sum(df_web_binary$no_problem))) %>% 
