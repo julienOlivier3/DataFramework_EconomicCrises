@@ -114,6 +114,19 @@ plot_radar_web <- df_web_binary %>%
   ungroup() 
 
 
+
+# Spider plot values for appendix
+df_app <- plot_radar_web %>% 
+  add_row(wz_fct = "Avg_unweighted", adaption = mean(.$adaption), information = mean(.$information), no_problem = mean(.$no_problem), problem = mean(.$problem), unclear = mean(.$unclear)) %>% 
+  add_row(wz_fct = "Avg_weighted", adaption = mean(df_web_binary$adaption), information = mean(df_web_binary$information), no_problem = mean(df_web_binary$no_problem), problem = mean(df_web_binary$problem), unclear = mean(df_web_binary$unclear)) %>% 
+  mutate_if(.predicate = is.numeric, .funs = function(x) round(x,4)) %>% 
+  select(wz_fct, problem, no_problem, adaption, information, unclear)
+
+
+stargazer(df_app, digits = 2, summary = FALSE, decimal.mark = ",", rownames = FALSE, digit.separate = 4, digit.separator = ",")
+
+
+
 plot_radar_web <- plot_radar_web %>% 
   add_row(wz_fct = "Avg", adaption = mean(.$adaption), information = mean(.$information), no_problem = mean(.$no_problem), problem = mean(.$problem), unclear = mean(.$unclear), .before = 1) %>% 
   add_row(wz_fct = "Min", adaption = 0, information = 0, no_problem = 0, problem = 0, unclear = 0, .before = 1) %>% 
@@ -145,16 +158,6 @@ for (i in 4:nrow(plot_radar_web)) {
 }
 
 
-
-# Spider plot values for appendix
-df_app <- plot_radar_web %>% 
-  add_row(wz_fct = "Avg_unweighted", adaption = mean(.$adaption), information = mean(.$information), no_problem = mean(.$no_problem), problem = mean(.$problem), unclear = mean(.$unclear)) %>% 
-  add_row(wz_fct = "Avg_weighted", adaption = mean(df_web_binary$adaption), information = mean(df_web_binary$information), no_problem = mean(df_web_binary$no_problem), problem = mean(df_web_binary$problem), unclear = mean(df_web_binary$unclear)) %>% 
-  mutate_if(.predicate = is.numeric, .funs = function(x) round(x,2)) %>% 
-  select(wz_fct, problem, no_problem, adaption, information, unclear)
-
-
-stargazer(df_app, digits = 2, summary = FALSE, decimal.mark = ",", rownames = FALSE, digit.separate = 4, digit.separator = ",")
 
 
 
@@ -229,10 +232,11 @@ df_web_binary <- df_web_binary %>% mutate(wz2 = map_int(wzdig5, wz2_converter)) 
   mutate(wz_fct2 = ifelse(is.na(wz_fct2), "Others", wz_fct2))
 
 df_web_binary <- df_web_binary %>% 
-  mutate(wz3 = map_int(wzdig5, function(x) wz_converter(x, digits = 3)))
+  mutate(wz3 = map_int(wzdig5, function(x) wz_converter(x, digits = 3)),
+         wz4 = map_int(wzdig5, function(x) wz_converter(x, digits = 4)))
 
-df_web_binary %>% 
-  group_by(wz3) %>% 
+df_wz <- df_web_binary %>% 
+  group_by(wz4) %>% 
   summarise(adaption = mean(adaption),
             information = mean(information),
             no_problem = mean(no_problem),
@@ -241,16 +245,53 @@ df_web_binary %>%
             wz_fct2 = first(wz_fct2), 
             N = n()) %>% 
   arrange(desc(problem)) %>% 
-  filter(wz_fct2=="Logistics & transport")
-  
+  filter(wz_fct2=="Wholesale & retail trade")
+
+xlsx::write.xlsx(df_wz %>% filter((4610 <= wz4) & (wz4 <= 4690)), file = file.path(here('03_Writing\\02_Tables\\wz4_wholesale.xlsx')), sheetName = "wholesale")
+
+df_wz %>% 
+  filter((4610 <= wz4) & (wz4 <= 4690)) -> tmp
+
 # Great differentiation in logistics and transport: passenger rail transport vs postal services
-# Keep on going here:
 
 
+### Size and Age: Webdata #################################################
+# Binarize categories
+df_web_binary <- df_web %>% 
+  mutate_if(is.double, function(x) ifelse(x > 0, 1, 0))
+
+df_web_binary <- df_web_binary %>%
+  left_join(firmdata)
+
+# Clean size and calculate age
+df_web_binary <- df_web_binary %>% 
+  mutate(size = as.double(anzma),
+         size_trunc = ifelse(size>100000, 100000, size),
+         age = 2021-gruend_jahr,
+         age_trunc = ifelse(age>100, 100, age))
+
+df_web_binary %>% 
+  group_by(age_trunc) %>% 
+  summarise(
+    problem = mean(problem),
+    no_problem = mean(no_problem),
+    adaption = mean(adaption),
+    information = mean(information),
+    unclear = mean(unclear)) %>% 
+  ggplot() +
+  geom_col(aes(x = age_trunc, y = no_problem))
 
 
-
-
+df_web_binary %>% 
+  group_by(csize_fct) %>% 
+  summarise(
+    problem = mean(problem),
+    no_problem = mean(no_problem),
+    adaption = mean(adaption),
+    information = mean(information),
+    unclear = mean(unclear)) %>% 
+  ggplot() +
+  geom_col(aes(x = csize_fct, y = no_problem))
 
 
 

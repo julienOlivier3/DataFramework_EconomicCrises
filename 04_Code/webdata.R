@@ -169,6 +169,36 @@ for (i in list.files(path_webfiles)){
 
 df_all %>% tab(welle)
 
+# Maximum number of context references per firm website
+df_all_max <- df_all %>% 
+  group_by(crefo) %>% 
+  summarise(adaption = max(adaption),
+            information = max(information),
+            no_problem = max(no_problem),
+            problem = max(problem),
+            unclear = max(unclear))
+
+df_all_max %>%  
+  select(problem, no_problem, adaption, information, unclear) %>% 
+  sapply(summary)
+
+
+# Add geoinformation
+firmdata <- read_delim(file = file.path(getwd(), '02_Data', '04_Firm_Characteristics', 'firmdata.txt'), delim = '\t', 
+                       col_types = cols(crefo = col_character()))
+
+df_map <- df_all %>% 
+  left_join(firmdata %>% select(crefo, kreis_l), by = "crefo") %>% 
+  filter(welle %in% c("03_19", "04_07", "05_02")) %>% 
+  select(crefo, welle, problem, kreis_l) %>% 
+  mutate(problem = ifelse(problem > 0, 1, 0))
+
+# Save geodata
+df_map %>% 
+  write_delim(file = here("02_Data//01_Webdata//df_web_problem_geo.csv"), delim = "\t")
+
+df_map %>% tab(welle)
+
 # Save
 df_all %>% 
   mutate(date = dmy(paste(str_sub(welle, start = -2), str_sub(welle, start = 1, end = 2), '2020', sep = '-'))) %>% 

@@ -3,6 +3,7 @@
 .git/
 .vscode/
 01_Old/
+.virtual_documents/
 
 # Files
 .Rproj.user
