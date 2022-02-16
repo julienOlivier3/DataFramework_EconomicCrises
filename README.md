@@ -15,4 +15,4 @@ Usually, official and survey-based statistics guide policymakers in their choice
 Credit rating data, survey responses and classified webdata are deposited in the ZEW Research Data Center (ZEW-FDZ) and will be made available upon reasonable request from the corresponding author.
 
 **Presentation**:<br/>
-Presentation slides of the paper can be found [here](https://raw.githack.com/julienOlivier3/insolvencygap/main/pres.pdf).
+Presentation slides of the paper can be found [here](https://raw.githack.com/julienOlivier3/DataFramework_EconomicCrises/main/pres.pdf).
