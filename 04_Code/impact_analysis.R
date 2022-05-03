@@ -33,7 +33,80 @@ firmdata <- read_delim(file = file.path(getwd(), '02_Data', '04_Firm_Characteris
 
 
 ## Webdata ================================================================
+### References over Time ##################################################
+df_web <- read_delim(file = file.path(getwd(), '02_Data', '01_Webdata', 'df_web_all.txt'), delim = '\t', 
+                     col_types = cols(crefo = col_character()))
 
+lockdown_date <- dmy('16-03-2020') # announcement of first lockdown
+#lockdown_date <- dmy('22-03-2020') # start of first lockdown
+#lockdown_date <- dmy('28-01-2020') # first COVID case
+# Drop rows where no reference has been found
+df_web <- df_web %>% 
+  rowwise() %>% 
+  mutate(check = sum(adaption, information, no_problem, problem, unclear)) %>% 
+  ungroup() %>% 
+  filter(check > 0) 
+
+df_waves <- df_web %>% 
+  group_by(date) %>% 
+  tally(name = "corona") %>% 
+  mutate(N = 1183920) %>% 
+  mutate(ref_frac = as.double(formatC(round((corona/N)*100, digits = 1), digits = 1, format="f")),
+         growth = (corona-lag(corona))/lag(corona)) %>% 
+  mutate(days_after = date - lockdown_date,
+         x = row_number())
+
+# Compute rolling average to smooth growth rates
+roll_avg <- c(NA, df_waves$growth[2], rollmean(df_waves$growth[2:3], k=2), rollmean(df_waves$growth, k=3)[2:11])
+df_waves <- df_waves %>% 
+  add_column(growth_smooth = round(roll_avg*100, digits = 1))
+
+# Plot
+# Value used to transform the secondary axis
+coeff <- 10000
+
+# A few constants
+absn_color <- "darkgrey"
+growth_color <- "red"
+
+tikz(file.path(getwd(), "03_Writing", "01_Figures", "fig_webdata_references.tex"),
+     height = 2.5,
+     width = 6)
+
+ggplot(df_waves, aes(x=x)) +
+  
+  geom_bar(aes(y=corona), stat="identity", size=.1, fill=absn_color, alpha=.6) + 
+  geom_line(aes(y=growth_smooth*coeff), size=1, color=growth_color#, linetype="dotted"
+  ) +
+  
+  scale_y_continuous(
+    
+    # Features of the first axis
+    name = "Corporate websites\nwith COVID-19 references",
+    labels=function(x) format(x, big.mark = ",", scientific = FALSE),
+    #limits = c(0, 180000),
+    
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~./coeff, name="Growth rate in \\%"#, labels = c(-0.05, 0, 0.05, 0.1, 0.15)
+    )
+  ) + 
+  
+  scale_x_continuous(name = "Days after announcement of first economic lockdown\textbackslash Web query", breaks = 1:13, labels = df_waves$days_after) +
+  #theme_jod +
+  theme(
+    panel.border = element_blank(),
+    panel.grid.minor.y =  element_blank(),
+    panel.grid.minor.x =  element_blank(),
+    axis.text.x = element_text(size = 7, angle = 0, hjust = 0.5),
+    axis.ticks = element_blank(),
+    axis.title.y = element_text(size = 9, vjust = 3,  margin = margin(t = 0, r = 0, b = 0, l = 5, unit = "pt"), 
+                                color = absn_color),
+    axis.title.y.right = element_text(size = 9, vjust = 3,  margin = margin(t = 0, r = 0, b = 0, l = 5, unit = "pt"),
+                                      color = growth_color)
+  ) 
+
+
+dev.off()
 ### Sample ################################################################
 df_web_sample <- read_dta(here("02_Data\\01_Webdata\\corona_on_web.dta"))
 df_web_sample <- df_web_sample %>% mutate(crefo = as.character(crefo))
